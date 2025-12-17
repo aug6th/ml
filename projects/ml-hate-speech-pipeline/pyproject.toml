@@ -1,0 +1,40 @@
+[build-system]
+requires = ["hatchling", "hatch-polylith-bricks"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ml-hate-speech-pipeline"
+version = "0.1.0"
+description = "Korean hate speech instruction dataset pipeline"
+authors = [{name = "eun2ce", email = "joeun2ce@gmail.com"}]
+requires-python = ">=3.12"
+dependencies = [
+    "httpx>=0.28.1",
+    "beautifulsoup4>=4.12.0",
+    "datasets>=2.14.0",
+    "huggingface_hub>=0.20.0",
+    "transformers>=4.30.0",
+    "torch>=2.0.0",
+    "pydantic-settings>=2.12.0",
+]
+
+[project.scripts]
+hate-speech-pipeline = "ml.hate_speech_pipeline.core:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["ml"]
+
+[tool.hatch.build.hooks.polylith-bricks]
+
+[tool.polylith.bricks]
+"../../bases/ml/hate_speech_pipeline" = "ml/hate_speech_pipeline"
+"../../components/ml/hate_speech" = "ml/hate_speech"
+"../../components/ml/scraper" = "ml/scraper"
+"../../components/ml/labeler" = "ml/labeler"
+"../../components/ml/formatter" = "ml/formatter"
+"../../components/ml/llm" = "ml/llm"
+"../../components/ml/config" = "ml/config"
+"../../components/ml/http" = "ml/http"
+"../../components/ml/json" = "ml/json"
+"../../components/ml/utils" = "ml/utils"
+"../../components/ml/hf" = "ml/hf"

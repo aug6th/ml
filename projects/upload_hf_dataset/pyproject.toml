@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling", "hatch-polylith-bricks"]
+build-backend = "hatchling.build"
+
+[project]
+name = "upload-hf-dataset"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "httpx==0.28.1",
+    "datasets==4.4.1",
+    "huggingface_hub==0.36.0",
+    "pydantic-settings==2.12.0",
+]
+
+[project.scripts]
+upload-hf-dataset = "ml.upload_hf_dataset.core:run"
+
+[tool.hatch.build.targets.wheel]
+packages = ["ml"]
+
+[tool.hatch.build.hooks.polylith-bricks]
+
+[tool.polylith.bricks]
+"../../bases/ml/extractor" = "ml/extractor"
+"../../bases/ml/upload_hf_dataset" = "ml/upload_hf_dataset"
+"../../components/ml/config" = "ml/config"
+"../../components/ml/hf" = "ml/hf"
+"../../components/ml/hate_speech" = "ml/hate_speech"
+

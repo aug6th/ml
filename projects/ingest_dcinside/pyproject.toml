@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling", "hatch-polylith-bricks"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ingest-dcinside"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "httpx==0.28.1",
+    "beautifulsoup4==4.14.3",
+    "pydantic-settings==2.12.0",
+    "cleantext==1.1.4",
+]
+
+[project.scripts]
+ingest-dcinside = "ml.ingest_dcinside.core:run"
+
+[tool.hatch.build.targets.wheel]
+packages = ["ml"]
+
+[tool.hatch.build.hooks.polylith-bricks]
+
+[tool.polylith.bricks]
+"../../bases/ml/extractor" = "ml/extractor"
+"../../bases/ml/ingest_dcinside" = "ml/ingest_dcinside"
+"../../components/dcinside_extractor" = "ml/dcinside_extractor"
+"../../components/ml/config" = "ml/config"
+"../../components/ml/http" = "ml/http"
+"../../components/ml/json" = "ml/json"
+"../../components/ml/scraper" = "ml/scraper"
+"../../components/ml/hate_speech" = "ml/hate_speech"
+

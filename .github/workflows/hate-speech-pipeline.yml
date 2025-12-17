@@ -1,0 +1,30 @@
+name: Hate Speech Pipeline
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # 매일 새벽 2시
+  workflow_dispatch:
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install uv
+        run: pip install uv
+      
+      - name: Run pipeline
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_DATASET_REPO_ID: ${{ secrets.HF_DATASET_REPO_ID }}
+          CRAWL_GALLERIES: ${{ secrets.CRAWL_GALLERIES }}
+        run: |
+          cd projects/ml-hate-speech-pipeline
+          uv sync
+          uv run python -m ml.hate_speech_pipeline.core

@@ -1,0 +1,5 @@
+PROMPT_TEMPLATE = "prompt_template"
+PROMPT_VERSION = "prompt_version"
+PROMPT_NAME = "prompt_name"
+MUSTACHE = "mustache"
+SYSTEM_MESSAGE_CLASSIFIER = "system_message"
