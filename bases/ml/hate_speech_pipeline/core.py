@@ -31,7 +31,7 @@ async def collect_raw_posts(today: str, settings: config.Settings) -> int:
                 if score < settings.classifier_threshold:
                     continue
             raw_path = RAW_DIR / f"{today}_{post.gallery}.jsonl"
-            Json(raw_path).append(post.to_dict())
+            Json(raw_path).append(post.model_dump())
             count += 1
             print(f"[{count}] {post.gallery}/{post.post_id}: {post.title[:30]}")
     print(f"Collected: {count} posts")
@@ -51,12 +51,12 @@ async def label_and_upload(today: str, settings: config.Settings) -> int:
             labeled_store = Json(labeled_path)
             with raw_path.open("r", encoding="utf-8") as f:
                 for line in f:
-                    post = RawPost.from_dict(json.loads(line))
+                    post = RawPost.model_validate(json.loads(line))
                     label = await labeler.label(post)
                     if not label:
                         continue
                     instruction = formatter.transform(post, label)
-                    labeled_store.append(instruction.to_dict())
+                    labeled_store.append(instruction.model_dump())
                     labeled_count += 1
                     print(f"Labeled: {post.post_id} -> {label.hate_speech_type}")
         all_data = []

@@ -43,9 +43,9 @@ async def collect_raw(galleries: list[str], today: str, settings: Settings) -> i
                     post = parse_post_detail(resp.text, gallery, post_id, title)
                     if not post or not post.content:
                         continue
-                    if post.created_at and post.created_at.date() != date.today():
+                    if post.dt != today:
                         return count
-                    raw_store.append(post.to_dict())
+                    raw_store.append(post.model_dump())
                     count += 1
                     collected += 1
                     if collected >= settings.BATCH_SIZE:
@@ -88,9 +88,11 @@ async def clean_data(today: str, settings: Settings) -> int:
 async def main() -> None:
     global_settings = config.get_settings()
     local_settings = Settings()
-    today = datetime.now().strftime("%Y-%m-%d")
-    await collect_raw(global_settings.crawl_galleries, today, local_settings)
-    await clean_data(today, local_settings)
+    from datetime import timedelta
+
+    target_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")  # yesterday
+    await collect_raw(global_settings.crawl_galleries, target_date, local_settings)
+    await clean_data(target_date, local_settings)
 
 
 def run() -> None:

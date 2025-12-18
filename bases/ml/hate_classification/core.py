@@ -36,10 +36,11 @@ def classify_data(today: str, settings: Settings) -> int:
 
 
 def run() -> None:
-    from datetime import datetime
+    from datetime import datetime, timedelta
+
     settings = Settings()
-    today = datetime.now().strftime("%Y-%m-%d")
-    classify_data(today, settings)
+    target_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")  # yesterday
+    classify_data(target_date, settings)
 
 
 if __name__ == "__main__":

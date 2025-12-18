@@ -46,12 +46,12 @@ class Client(LLMClient):
             return data[0].get("generated_text", "")
         return data.get("generated_text", "")
 
-    async def upload(self, data: list[InstructionData]) -> str:
+    async def upload(self, data: list[InstructionData] | list[dict]) -> str:
         train_size = int(len(data) * 0.8)
         val_size = int(len(data) * 0.1)
-        train_data = [item.to_dict() for item in data[:train_size]]
-        val_data = [item.to_dict() for item in data[train_size:train_size + val_size]]
-        test_data = [item.to_dict() for item in data[train_size + val_size:]]
+        train_data = [item.model_dump() for item in data[:train_size]]
+        val_data = [item.model_dump() for item in data[train_size:train_size + val_size]]
+        test_data = [item.model_dump() for item in data[train_size + val_size:]]
         dataset_dict = DatasetDict({
             "train": Dataset.from_list(train_data),
             "validation": Dataset.from_list(val_data),

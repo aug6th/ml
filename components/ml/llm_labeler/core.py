@@ -22,18 +22,18 @@ HATE_PROMPT = """다음 텍스트를 분석하여 혐오표현 유형을 분류�
 설명: [설명]
 텍스트: {text}"""
 
-MODEL_NAME = "mistralai/Mistral-7B-Instruct-v0.2"
 TEMPERATURE = 0.3
 
 
 class LLMLabeler:
-    def __init__(self, llm: LLMClient):
+    def __init__(self, llm: LLMClient, model_name: str):
         self._llm = llm
+        self._model_name = model_name
 
     async def label(self, record_id: str, text: str) -> LabeledRecord:
         prompt = HATE_PROMPT.format(text=text)
         messages = [LLMMessage(role=LLMRole.USER, content=prompt)]
-        response = await self._llm.generate(messages, model=MODEL_NAME, temperature=TEMPERATURE)
+        response = await self._llm.generate(messages, model=self._model_name, temperature=TEMPERATURE)
         parsed = parse_label_response(response)
         if not parsed:
             return LabeledRecord(
@@ -41,7 +41,7 @@ class LLMLabeler:
                 text=text,
                 hate=False,
                 hate_type=[],
-                llm_model=MODEL_NAME,
+                llm_model=self._model_name,
                 confidence=0.0,
             )
         hate_type_str = parsed.get("type", "없음")
@@ -52,7 +52,7 @@ class LLMLabeler:
             text=text,
             hate=hate,
             hate_type=hate_types,
-            llm_model=MODEL_NAME,
+            llm_model=self._model_name,
             confidence=1.0,
         )
 

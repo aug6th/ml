@@ -1,0 +1,45 @@
+name: hate-speech-llm-and-upload
+
+on:
+  workflow_dispatch:
+
+jobs:
+  llm_and_upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Setup Ollama
+        uses: ai-action/setup-ollama@v1
+      - name: Cache Ollama models
+        uses: actions/cache@v4
+        with:
+          path: ~/.ollama
+          key: ${{ runner.os }}-ollama-qwen3-0_6b
+          restore-keys: |
+            ${{ runner.os }}-ollama-
+
+      - name: Pull Qwen3 model
+        run: ollama pull OxW/Qwen3-0.6B-GGUF
+
+      - name: Run LLM labeling & upload (yesterday)
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_DATASET_REPO_ID: ${{ secrets.HF_DATASET_REPO_ID }}
+          LLM_BASE_URL: http://localhost:11434/v1
+        run: |
+          uv sync
+          uv run python -m ml.hate_llm_labeling.core
+          uv run python -m ml.upload_hf_dataset.core
+
+

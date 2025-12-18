@@ -1,0 +1,43 @@
+name: hate-speech-weekly-cleanup
+
+on:
+  schedule:
+    - cron: '0 4 * * 0'  # 매주 일요일 새벽 4시
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+      uses: actions/checkout@v4
+
+      - name: Cleanup old raw/clean/classified (keep last 7 days)
+        run: |
+          set -eux
+
+          # 기준: 7일보다 오래된 dt=YYYY-MM-DD 디렉토리 삭제
+          # 필요하면 +7 을 +14, +30 등으로 조정 가능
+          RETENTION_DAYS=7
+
+          # raw: out/datalake/raw/dcinside/dt=YYYY-MM-DD
+          if [ -d "out/datalake/raw/dcinside" ]; then
+            find out/datalake/raw/dcinside -maxdepth 1 -mindepth 1 -type d -mtime +$RETENTION_DAYS -print -exec rm -rf {} +
+          fi
+
+          # clean: out/datalake/clean/dcinside/v1/dt=YYYY-MM-DD
+          if [ -d "out/datalake/clean/dcinside" ]; then
+            find out/datalake/clean/dcinside -maxdepth 2 -type d -name 'dt=*' -mtime +$RETENTION_DAYS -print -exec rm -rf {} +
+          fi
+
+          # classified: out/datalake/classified/hate_speech/model=kcelectra/dt=YYYY-MM-DD
+          if [ -d "out/datalake/classified/hate_speech/model=kcelectra" ]; then
+            find out/datalake/classified/hate_speech/model=kcelectra -maxdepth 1 -mindepth 1 -type d -mtime +$RETENTION_DAYS -print -exec rm -rf {} +
+          fi
+
+          # 필요하면 labeled 도 보관일수 달리해서 정리 가능 (지금은 건드리지 않음)
+          # 예: labeled 30일 보관
+          # if [ -d "out/datalake/labeled/hate_speech/llm=qwen3" ]; then
+          #   find out/datalake/labeled/hate_speech/llm=qwen3 -maxdepth 1 -mindepth 1 -type d -mtime +30 -print -exec rm -rf {} +
+          # fi

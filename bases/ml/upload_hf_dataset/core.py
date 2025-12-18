@@ -9,8 +9,8 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    LLM_MODEL: str = "mistralai/Mistral-7B-Instruct-v0.2"
-    LABELED_DIR: str = "out/datalake/labeled/hate_speech/llm=mistral"
+    LLM_MODEL: str = "OxW/Qwen3-0.6B-GGUF"
+    LABELED_DIR: str = "out/datalake/labeled/hate_speech/llm=qwen3"
 
 
 def format_instruction(labeled: LabeledRecord) -> InstructionData:
@@ -43,9 +43,10 @@ async def upload_data(today: str, global_settings: config.Settings, local_settin
 async def main() -> None:
     global_settings = config.get_settings()
     local_settings = Settings()
-    from datetime import datetime
-    today = datetime.now().strftime("%Y-%m-%d")
-    await upload_data(today, global_settings, local_settings)
+    from datetime import datetime, timedelta
+
+    target_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")  # yesterday
+    await upload_data(target_date, global_settings, local_settings)
 
 
 def run() -> None:

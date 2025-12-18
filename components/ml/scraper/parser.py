@@ -40,13 +40,14 @@ def parse_post_detail(html: str, gallery: str, post_id: str, title: str) -> RawP
     author_elem = soup.select_one(".gall_writer .nickname em") or soup.select_one(".gall_writer .nickname")
     if author_elem:
         author = author_elem.get_text(strip=True)
-    created_at = None
+    dt = None
     date_elem = soup.select_one(".gall_date")
     if date_elem:
         date_str = date_elem.get("title") or date_elem.get_text(strip=True)
         for fmt in ["%Y.%m.%d %H:%M:%S", "%Y-%m-%d %H:%M:%S"]:
             try:
                 created_at = datetime.strptime(date_str, fmt)
+                dt = created_at.strftime("%Y-%m-%d")
                 break
             except ValueError:
                 pass
@@ -56,7 +57,7 @@ def parse_post_detail(html: str, gallery: str, post_id: str, title: str) -> RawP
         title=title,
         content=content,
         author=author,
-        created_at=created_at,
+        dt=dt,
         comments=[],
         url=f"https://gall.dcinside.com/board/view?id={gallery}&no={post_id}",
     )

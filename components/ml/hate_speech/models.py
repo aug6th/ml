@@ -1,87 +1,32 @@
 from __future__ import annotations
-from dataclasses import dataclass
-from datetime import datetime
+from pydantic import BaseModel, Field
+from typing import Optional
 
-@dataclass
-class RawComment:
+class DtMixin(BaseModel):
+    dt: Optional[str] = None
+
+class RawComment(DtMixin):
     comment_id: str
     content: str
-    author: str | None
-    created_at: datetime | None
+    author: Optional[str] = None
 
-    def to_dict(self) -> dict:
-        return {
-            "comment_id": self.comment_id,
-            "content": self.content,
-            "author": self.author,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-        }
-
-@dataclass
-class RawPost:
+class RawPost(DtMixin):
     post_id: str
     gallery: str
     title: str
     content: str
-    author: str | None
-    created_at: datetime | None
-    comments: list[RawComment]
-    url: str | None = None
+    author: Optional[str] = None
+    comments: list[RawComment] = Field(default_factory=list)
+    url: Optional[str] = None
 
-    def to_dict(self) -> dict:
-        return {
-            "post_id": self.post_id,
-            "gallery": self.gallery,
-            "title": self.title,
-            "content": self.content,
-            "author": self.author,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "comments": [c.to_dict() for c in self.comments],
-            "url": self.url,
-        }
-
-    @classmethod
-    def from_dict(cls, data: dict) -> RawPost:
-        created_at = None
-        if data.get("created_at"):
-            created_at = datetime.fromisoformat(data["created_at"])
-        return cls(
-            post_id=data["post_id"],
-            gallery=data["gallery"],
-            title=data["title"],
-            content=data["content"],
-            author=data.get("author"),
-            created_at=created_at,
-            comments=[],
-            url=data.get("url"),
-        )
-
-@dataclass
-class LabelResult:
+class LabelResult(BaseModel):
     hate_speech_type: str
     hate_speech_description: str
-    nuance: str | None = None
-    hate_level: str | None = None
-    reason: str | None = None
+    nuance: Optional[str] = None
+    hate_level: Optional[str] = None
+    reason: Optional[str] = None
 
-    def to_dict(self) -> dict:
-        return {
-            "hate_speech_type": self.hate_speech_type,
-            "hate_speech_description": self.hate_speech_description,
-            "nuance": self.nuance,
-            "hate_level": self.hate_level,
-            "reason": self.reason,
-        }
-
-@dataclass
-class InstructionData:
+class InstructionData(BaseModel):
     instruction: str
     input: str
     output: str
-
-    def to_dict(self) -> dict:
-        return {
-            "instruction": self.instruction,
-            "input": self.input,
-            "output": self.output,
-        }
