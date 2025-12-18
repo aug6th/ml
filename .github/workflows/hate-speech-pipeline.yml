@@ -38,14 +38,26 @@ jobs:
             echo "ERROR: out/ directory does not exist"
             exit 1
           fi
+          echo "Directory structure:"
+          find out/ -type d | head -20
+          echo ""
+          echo "All files:"
+          find out/ -type f 2>/dev/null | head -20
           file_count=$(find out/ -type f 2>/dev/null | wc -l)
+          echo ""
           echo "Found $file_count files in out/"
           if [ "$file_count" -eq 0 ]; then
             echo "ERROR: No files found in out/ directory"
-            ls -la out/ || true
+            echo "Directory listing:"
+            ls -laR out/ || true
+            echo ""
+            echo "Checking if datalake directory exists:"
+            ls -la out/datalake/ 2>/dev/null || echo "out/datalake/ does not exist"
             exit 1
           fi
           du -sh out/
+          echo ""
+          echo "Sample files:"
           find out/ -type f | head -10
 
       - name: Commit and push to repository
