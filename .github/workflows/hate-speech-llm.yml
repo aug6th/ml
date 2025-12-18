@@ -42,4 +42,12 @@ jobs:
           uv run python -m ml.hate_llm_labeling.core
           uv run python -m ml.upload_hf_dataset.core
 
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: datalake-llm-${{ github.run_id }}
+          path: out/
+          retention-days: 7
+
 

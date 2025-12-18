@@ -26,3 +26,11 @@ jobs:
           uv sync
           uv run python -m ml.ingest_dcinside.core
           uv run python -m ml.hate_classification.core
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: datalake-${{ github.run_id }}
+          path: out/
+          retention-days: 7
