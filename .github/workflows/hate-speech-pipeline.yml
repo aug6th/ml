@@ -27,6 +27,9 @@ jobs:
           uv run python -m ml.ingest_dcinside.core
           uv run python -m ml.hate_classification.core
 
+      - name: Ensure out directory exists
+        run: mkdir -p out
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         if: always()
