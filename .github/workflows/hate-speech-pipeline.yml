@@ -26,9 +26,19 @@ jobs:
 
       - name: Run ingest + classification (yesterday)
         run: |
+          set -e
           uv sync
-          uv run python -m ml.ingest_dcinside.core
-          uv run python -m ml.hate_classification.core
+          echo "Running ingest_dcinside..."
+          uv run python -m ml.ingest_dcinside.core || {
+            echo "ERROR: ingest_dcinside failed"
+            exit 1
+          }
+          echo "Running hate_classification..."
+          uv run python -m ml.hate_classification.core || {
+            echo "ERROR: hate_classification failed"
+            exit 1
+          }
+          echo "Pipeline completed successfully"
 
       - name: Check out directory contents
         if: always()

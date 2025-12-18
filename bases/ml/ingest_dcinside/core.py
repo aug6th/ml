@@ -33,6 +33,7 @@ async def collect_raw(galleries: list[str], today: str, settings: Settings) -> i
             collected = gp.get("count", 0)
             raw_path = raw_dir / f"dt={today}" / f"{gallery}.jsonl"
             raw_store = Json(raw_path)
+            consecutive_old_posts = 0
             while collected < settings.BATCH_SIZE:
                 resp = await http.get("/board/lists", {"id": gallery, "page": page})
                 posts = parse_gallery_page(resp.text)
@@ -43,13 +44,22 @@ async def collect_raw(galleries: list[str], today: str, settings: Settings) -> i
                     post = parse_post_detail(resp.text, gallery, post_id, title)
                     if not post or not post.content:
                         continue
-                    if post.dt != today:
-                        return count
-                    raw_store.append(post.model_dump())
-                    count += 1
-                    collected += 1
-                    if collected >= settings.BATCH_SIZE:
-                        break
+                    if not post.dt:
+                        continue
+                    if post.dt < today:
+                        consecutive_old_posts += 1
+                        if consecutive_old_posts >= 10:
+                            return count
+                        continue
+                    if post.dt > today:
+                        continue
+                    if post.dt == today:
+                        consecutive_old_posts = 0
+                        raw_store.append(post.model_dump())
+                        count += 1
+                        collected += 1
+                        if collected >= settings.BATCH_SIZE:
+                            break
                 page += 1
                 gp["count"] = collected
                 gp["last_page"] = page
