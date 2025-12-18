@@ -12,6 +12,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -27,8 +30,37 @@ jobs:
           uv run python -m ml.ingest_dcinside.core
           uv run python -m ml.hate_classification.core
 
-      - name: Ensure out directory exists
-        run: mkdir -p out
+      - name: Check out directory contents
+        if: always()
+        run: |
+          echo "Checking out directory..."
+          if [ ! -d "out" ]; then
+            echo "ERROR: out/ directory does not exist"
+            exit 1
+          fi
+          file_count=$(find out/ -type f 2>/dev/null | wc -l)
+          echo "Found $file_count files in out/"
+          if [ "$file_count" -eq 0 ]; then
+            echo "ERROR: No files found in out/ directory"
+            ls -la out/ || true
+            exit 1
+          fi
+          du -sh out/
+          find out/ -type f | head -10
+
+      - name: Commit and push to repository
+        if: always() && github.event_name != 'pull_request'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git pull --rebase
+          git add out/
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Add data pipeline results for ${{ github.run_id }}"
+            git push
+          fi
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -37,3 +69,4 @@ jobs:
           name: datalake-${{ github.run_id }}
           path: out/
           retention-days: 7
+          if-no-files-found: error
