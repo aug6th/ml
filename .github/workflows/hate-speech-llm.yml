@@ -6,6 +6,8 @@ on:
 jobs:
   llm_and_upload:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout

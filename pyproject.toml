@@ -9,7 +9,7 @@ description = "A Python Polylith project template"
 readme = "README.md"
 requires-python = ">=3.12"
 license = "MIT"
-authors = [{name = "eun2ce", email = "joeun2ce@gmail.com"}]
+authors = [{name = "aug6th", email = "joeun2ce@gmail.com"}]
 dependencies = [
     "fastapi>=0.124.4",
     "uvicorn[standard]>=0.38.0",

@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "ml-hate-speech-pipeline"
 version = "0.1.0"
 description = "Korean hate speech instruction dataset pipeline"
-authors = [{name = "eun2ce", email = "joeun2ce@gmail.com"}]
+authors = [{name = "aug6th", email = "joeun2ce@gmail.com"}]
 requires-python = ">=3.12"
 dependencies = [
     "httpx>=0.28.1",
