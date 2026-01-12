@@ -1,6 +1,8 @@
 name: hate-speech-llm-and-upload
 
 on:
+  schedule:
+    - cron: '0 4 * * *'  # at 4:00 AM
   workflow_dispatch:
 
 jobs:
