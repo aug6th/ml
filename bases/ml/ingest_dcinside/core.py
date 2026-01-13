@@ -29,17 +29,24 @@ async def collect_raw(galleries: list[str], today: str, settings: Settings) -> i
     count = 0
     async with HttpClient(settings.DCINSIDE_BASE_URL) as http:
         for gallery in galleries:
-            gp = progress.get(gallery, {"count": 0, "last_page": 1})
+            # Use date-specific checkpoint key to avoid conflicts between dates
+            gallery_key = f"{gallery}_{today}"
+            gp = progress.get(gallery_key, {"count": 0, "last_page": 1})
             page = gp.get("last_page", 1)
             collected = gp.get("count", 0)
+            print(f"Gallery {gallery}: starting from page {page}, already collected {collected} posts")
             raw_path = raw_dir / f"dt={today}" / f"{gallery}.jsonl"
             raw_store = Json(raw_path)
             consecutive_old_posts = 0
+            pages_processed = 0
             while collected < settings.BATCH_SIZE:
                 resp = await http.get("/board/lists", {"id": gallery, "page": page})
                 posts = parse_gallery_page(resp.text)
                 if not posts:
+                    print(f"Gallery {gallery}: No posts found on page {page}, stopping")
                     break
+                pages_processed += 1
+                posts_on_target_date = 0
                 for post_id, title in posts:
                     resp = await http.get("/board/view", {"id": gallery, "no": post_id})
                     post = parse_post_detail(resp.text, gallery, post_id, title)
@@ -50,7 +57,8 @@ async def collect_raw(galleries: list[str], today: str, settings: Settings) -> i
                     if post.dt < today:
                         consecutive_old_posts += 1
                         if consecutive_old_posts >= 10:
-                            return count
+                            print(f"Gallery {gallery}: Found 10 consecutive old posts, stopping collection")
+                            break
                         continue
                     if post.dt > today:
                         continue
@@ -59,16 +67,22 @@ async def collect_raw(galleries: list[str], today: str, settings: Settings) -> i
                         raw_store.append(post.model_dump())
                         count += 1
                         collected += 1
+                        posts_on_target_date += 1
                         if collected >= settings.BATCH_SIZE:
                             break
+                if consecutive_old_posts >= 10:
+                    break
+                if pages_processed % 5 == 0:
+                    print(f"Gallery {gallery}: Processed {pages_processed} pages, collected {collected} posts for date {today}")
                 page += 1
                 gp["count"] = collected
                 gp["last_page"] = page
-                progress[gallery] = gp
+                progress[gallery_key] = gp
                 checkpoint.set_all(progress)
                 await asyncio.sleep(1.0 / settings.RATE_LIMIT)
                 if collected >= settings.BATCH_SIZE:
                     break
+            print(f"Gallery {gallery}: Finished with {collected} posts collected for date {today}")
     print(f"Collected {count} raw posts for date {today}")
     return count
 
