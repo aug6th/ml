@@ -1,8 +1,8 @@
 name: hate-speech-weekly-cleanup
 
 on:
-  schedule:
-    - cron: '0 4 * * 0'  # Every Sunday at 4 AM
+  # schedule:
+  #   - cron: '0 4 * * 0'  # Every Sunday at 4 AM
   workflow_dispatch:
 
 jobs:
