@@ -2,5 +2,9 @@
   "dcbest": {
     "count": 100,
     "last_page": 5
+  },
+  "dcbest_2026-01-12": {
+    "count": 100,
+    "last_page": 5
   }
 }
