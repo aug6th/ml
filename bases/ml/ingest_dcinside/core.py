@@ -1,6 +1,6 @@
 import asyncio
 import json
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from ml import config
 from ml.dcinside_extractor.extractor import DCInsideExtractor
@@ -20,6 +20,7 @@ class Settings(BaseSettings):
 
 
 async def collect_raw(galleries: list[str], today: str, settings: Settings) -> int:
+    print(f"Starting raw data collection for date: {today}, galleries: {galleries}")
     raw_dir = Path(settings.RAW_DIR)
     raw_dir.mkdir(parents=True, exist_ok=True)
     checkpoint_path = Path(settings.CHECKPOINT_PATH)
@@ -68,10 +69,12 @@ async def collect_raw(galleries: list[str], today: str, settings: Settings) -> i
                 await asyncio.sleep(1.0 / settings.RATE_LIMIT)
                 if collected >= settings.BATCH_SIZE:
                     break
+    print(f"Collected {count} raw posts for date {today}")
     return count
 
 
 async def clean_data(today: str, settings: Settings) -> int:
+    print(f"Starting data cleaning for date: {today}")
     clean_dir = Path(settings.CLEAN_DIR)
     clean_dir.mkdir(parents=True, exist_ok=True)
     extractor = DCInsideExtractor()
@@ -80,6 +83,7 @@ async def clean_data(today: str, settings: Settings) -> int:
     count = 0
     raw_dir = Path(settings.RAW_DIR) / f"dt={today}"
     if not raw_dir.exists():
+        print(f"Raw directory does not exist: {raw_dir}")
         return 0
     for raw_file in raw_dir.glob("*.jsonl"):
         with raw_file.open("r", encoding="utf-8") as f:
@@ -92,17 +96,26 @@ async def clean_data(today: str, settings: Settings) -> int:
                     count += 1
                 except (ValueError, KeyError):
                     continue
+    print(f"Cleaned {count} records for date {today}")
     return count
 
 
 async def main() -> None:
     global_settings = config.get_settings()
     local_settings = Settings()
-    from datetime import timedelta
-
-    target_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")  # yesterday
-    await collect_raw(global_settings.crawl_galleries, target_date, local_settings)
-    await clean_data(target_date, local_settings)
+    
+    # Use Korea Standard Time (KST, UTC+9) for date calculation
+    kst = timezone(timedelta(hours=9))
+    now_kst = datetime.now(kst)
+    target_date = (now_kst - timedelta(days=1)).strftime("%Y-%m-%d")  # yesterday in KST
+    
+    print(f"Current time (KST): {now_kst.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"Target date: {target_date}")
+    
+    raw_count = await collect_raw(global_settings.crawl_galleries, target_date, local_settings)
+    clean_count = await clean_data(target_date, local_settings)
+    
+    print(f"Pipeline completed: raw={raw_count}, clean={clean_count}")
 
 
 def run() -> None:
